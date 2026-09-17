@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
@@ -6,7 +7,7 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: 'https://automationexercise.com',
-    headless: false,
+    headless: !process.env.CI,
     viewport: null,
     launchOptions: {
       args: ['--start-maximized']
