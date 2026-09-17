@@ -1,0 +1,29 @@
+{
+  "name": "playwrightautomationexercise",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:login": "playwright test tests/02-Login/login.spec.ts",
+    "test:invalid-login": "playwright test tests/02-Login/login.spec.ts -g \"Test Case 3\"",
+    "test:register": "playwright test tests/01-Registration/registerUser.spec.ts",
+    "test:logout": "playwright test tests/03-Logout/logout.spec.ts",
+    "test:existing-email": "playwright test tests/04-Existing-Email/existingEmail.spec.ts",
+    "test:contact": "playwright test tests/05-Contact-Us/contactUs.spec.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.5.0"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0",
+    "playwright-core": "^1.63.0",
+    "undici-types": "^8.9.0",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "types": ["node", "@playwright/test"]
+  },
+  "include": ["config/**/*.ts", "fixtures/**/*.ts", "pages/**/*.ts", "tests/**/*.ts", "utils/**/*.ts"]
+}
