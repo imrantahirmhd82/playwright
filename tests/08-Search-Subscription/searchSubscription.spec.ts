@@ -3,7 +3,7 @@ import { installAdCloser, closeVisibleAd } from '../../utils/adHandler';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ProductsPage } from '../../pages/ProductsPage';
 import { SubscriptionPage } from '../../pages/SubscriptionPage';
-import { HomePage } from '../../pages/HomePage';
+import { HomePage } from '../../pages/Homepage';
 import { getTestData } from '../../utils/excelData';
 
 test.setTimeout(60000);
