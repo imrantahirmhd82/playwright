@@ -7,7 +7,8 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: 'https://automationexercise.com',
-    headless: !process.env.CI,
+    // CI runners do not provide an X server, so the suite must never launch a headed browser.
+    headless: true,
     viewport: null,
     launchOptions: {
       args: ['--start-maximized']
