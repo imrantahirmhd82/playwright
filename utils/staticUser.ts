@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { RegistrationDetails, SignupPage } from '../pages/SignupPage';
-import { getRegistrationData, saveRegistrationData } from './excelData';
+import { getRegistrationData } from './excelData';
 
 function createReplacementUser(previousUser: RegistrationDetails): RegistrationDetails {
   const uniqueId = Date.now();
@@ -19,7 +19,7 @@ export async function ensureStaticUser(page: Page): Promise<RegistrationDetails>
   await signupPage.login(savedUser.email, savedUser.password);
 
   const loggedInUser = page.getByText(`Logged in as ${savedUser.name}`);
-  if (await loggedInUser.isVisible({ timeout: 10000 }).catch(() => false)) {
+  if (await loggedInUser.isVisible({ timeout: 7000 }).catch(() => false)) {
     return savedUser;
   }
 
@@ -32,6 +32,5 @@ export async function ensureStaticUser(page: Page): Promise<RegistrationDetails>
   await signupPage.completeRegistration(replacementUser);
   await signupPage.continueAfterAccountCreation();
   await expect(page.getByText(`Logged in as ${replacementUser.name}`)).toBeVisible();
-  saveRegistrationData('static', replacementUser);
   return replacementUser;
 }
