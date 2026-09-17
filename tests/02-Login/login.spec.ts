@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { RegistrationDetails, SignupPage } from '../../pages/SignupPage';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
-import { getLoginData, getRegistrationData } from '../../utils/excelData';
+import { getLoginData, getUniqueRegistrationData } from '../../utils/excelData';
 
 test.setTimeout(60000);
 
@@ -14,8 +14,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 // Test Case 2: Login User with correct email and password
 test('Test Case 2: Login User with correct email and password', async ({ page }) => {
     const signupPage = new SignupPage(page);
-    const details: RegistrationDetails = getRegistrationData();
-    const validLogin = getLoginData('valid');
+    const details: RegistrationDetails = getUniqueRegistrationData();
 
     await test.step('Launch browser and verify the home page', async () => {
         await page.goto('/');
@@ -36,7 +35,7 @@ test('Test Case 2: Login User with correct email and password', async ({ page })
     });
 
     await test.step('Log in with the correct email and password', async () => {
-        await signupPage.login(validLogin.email, validLogin.password);
+        await signupPage.login(details.email, details.password);
         await expect(page.getByText(`Logged in as ${details.name}`)).toBeVisible();
     });
 

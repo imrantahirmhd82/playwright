@@ -27,6 +27,17 @@ export function getRegistrationData(scenario = 'registration'): RegistrationDeta
   return registration;
 }
 
+export function getUniqueRegistrationData(scenario = 'registration'): RegistrationDetails {
+  const registration = getRegistrationData(scenario);
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  return {
+    ...registration,
+    name: `${registration.name} ${uniqueId}`,
+    email: `playwright.${uniqueId}@example.com`
+  };
+}
+
 export function saveRegistrationData(scenario: string, data: RegistrationDetails): void {
   const workbook = XLSX.readFile(workbookPath);
   const rows = readSheet<RegistrationDetails & { scenario?: string }>('User Registration')

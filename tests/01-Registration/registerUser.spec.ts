@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { RegistrationDetails, SignupPage } from '../../pages/SignupPage';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
-import { getRegistrationData } from '../../utils/excelData';
+import { getUniqueRegistrationData } from '../../utils/excelData';
 
 test.setTimeout(60000);
 
@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 // Test Case 1: Register User
 test('Test Case 1: Register User', async ({ page }) => {
   const signupPage = new SignupPage(page);
-  const details: RegistrationDetails = getRegistrationData('registration');
+  const details: RegistrationDetails = getUniqueRegistrationData('registration');
 
   await test.step('Launch browser and verify the home page', async () => {
     await page.goto('/');
