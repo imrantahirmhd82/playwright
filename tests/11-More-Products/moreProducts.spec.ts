@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { ensureStaticUser } from '../../utils/staticUser';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
@@ -17,7 +17,7 @@ test.afterEach(async ({ page }) => {
   await clearCart(page).catch(() => undefined);
 });
 
-async function addProduct(page: Parameters<typeof test>[0]['page'], productId?: string): Promise<void> {
+async function addProduct(page: Page, productId?: string): Promise<void> {
   const productsPage = new ProductsPage(page);
   if (productId) {
     await productsPage.addProduct(productId);
@@ -26,7 +26,7 @@ async function addProduct(page: Parameters<typeof test>[0]['page'], productId?: 
   await productsPage.addFirstVisibleProduct();
 }
 
-async function clearCart(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function clearCart(page: Page): Promise<void> {
   await new CartPage(page).clear();
 
   await expect(page.locator('#empty_cart')).toBeVisible();

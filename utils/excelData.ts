@@ -24,7 +24,11 @@ export function getRegistrationData(scenario = 'registration'): RegistrationDeta
   if (!registration) {
     throw new Error(`Missing registration scenario: ${scenario}`);
   }
-  return registration;
+  return {
+    ...registration,
+    zipcode: String(registration.zipcode),
+    mobileNumber: String(registration.mobileNumber),
+  };
 }
 
 export function getUniqueRegistrationData(scenario = 'registration'): RegistrationDetails {

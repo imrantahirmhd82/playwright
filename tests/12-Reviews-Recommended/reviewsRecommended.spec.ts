@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ReviewPage } from '../../pages/ReviewPage';
@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }, testInfo) => {
   installAdCloser(page);
 });
 
-async function clearCart(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function clearCart(page: Page): Promise<void> {
   await page.goto('/view_cart');
   await closeVisibleAd(page);
   await page.waitForTimeout(400);
@@ -25,7 +25,7 @@ async function clearCart(page: Parameters<typeof test>[0]['page']): Promise<void
   }
 }
 
-async function closeCartModal(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function closeCartModal(page: Page): Promise<void> {
   const cartModal = page.locator('#cartModal');
   const continueShopping = cartModal.locator('button.close-modal');
   if (await continueShopping.isVisible().catch(() => false)) {

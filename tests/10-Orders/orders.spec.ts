@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 import { RegistrationDetails, SignupPage } from '../../pages/SignupPage';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { ensureStaticUser } from '../../utils/staticUser';
@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }, testInfo) => {
   installAdCloser(page);
 });
 
-async function addProductAndOpenCart(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function addProductAndOpenCart(page: Page): Promise<void> {
   const productsPage = new ProductsPage(page);
   const cartPage = new CartPage(page);
   await productsPage.open();
@@ -22,11 +22,11 @@ async function addProductAndOpenCart(page: Parameters<typeof test>[0]['page']): 
   await cartPage.open();
 }
 
-async function openCheckout(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function openCheckout(page: Page): Promise<void> {
   await new CartPage(page).proceedToCheckout();
 }
 
-async function createOrderUser(page: Parameters<typeof test>[0]['page']): Promise<RegistrationDetails> {
+async function createOrderUser(page: Page): Promise<RegistrationDetails> {
   const uniqueId = Date.now();
   const registrationData = getRegistrationData('registration');
   const details: RegistrationDetails = {
@@ -48,7 +48,7 @@ async function createOrderUser(page: Parameters<typeof test>[0]['page']): Promis
   return details;
 }
 
-async function verifyCheckoutReview(page: Parameters<typeof test>[0]['page']): Promise<void> {
+async function verifyCheckoutReview(page: Page): Promise<void> {
   await expect(page).toHaveURL(/automationexercise\.com\/checkout/);
   await expect(page.getByText('Address Details')).toBeVisible();
   await expect(page.getByText('Review Your Order')).toBeVisible();

@@ -18,7 +18,8 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.5.0"
+    "@types/node": "^26.5.0",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "playwright": "^1.63.0",

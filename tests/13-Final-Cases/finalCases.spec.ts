@@ -17,17 +17,6 @@ test.beforeEach(async ({ page }, testInfo) => {
   installAdCloser(page);
 });
 
-async function clearCart(page: Page): Promise<void> {
-  await page.goto('/view_cart');
-  await closeVisibleAd(page);
-  await waitAfterAction(page);
-  const rows = page.locator('#cart_info tbody tr');
-  while (await rows.count() > 0) {
-    await rows.first().locator('.cart_quantity_delete').click();
-    await waitAfterAction(page);
-  }
-}
-
 async function addProduct(page: Page): Promise<void> {
   const productsPage = new ProductsPage(page);
   await productsPage.open();
@@ -39,10 +28,6 @@ async function openCheckout(page: Page): Promise<void> {
   await cartPage.open();
   await new CheckoutPage(page).proceedFromCart();
 }
-
-test.afterEach(async ({ page }) => {
-  await clearCart(page).catch(() => undefined);
-});
 
 test('Test Case 23: Verify Address Details in Checkout', async ({ page }) => {
   await page.goto('/');
