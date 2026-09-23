@@ -23,8 +23,7 @@ export default defineConfig({
     trace: 'on-first-retry'
   },
 
-  reporter: [
-    ['html'],
-    ['list']
-  ]
+  // In CI the "github" reporter emits per-test ::error:: annotations, which makes
+  // failures (and their assertion messages) visible directly from the checks API.
+  reporter: process.env.CI ? [['github'], ['html']] : [['html'], ['list']]
 });
