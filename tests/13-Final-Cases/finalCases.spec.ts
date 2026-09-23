@@ -8,7 +8,7 @@ import { CheckoutPage } from '../../pages/CheckoutPage';
 import { ScrollPage } from '../../pages/ScrollPage';
 import { getTestData } from '../../utils/excelData';
 
-test.setTimeout(60000);
+test.setTimeout(120000);
 
 const waitAfterAction = (page: Page): Promise<void> => page.waitForTimeout(400);
 

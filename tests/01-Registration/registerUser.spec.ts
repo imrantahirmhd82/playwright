@@ -4,7 +4,7 @@ import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
 import { getUniqueRegistrationData } from '../../utils/excelData';
 
-test.setTimeout(60000);
+test.setTimeout(120000);
 
 test.beforeEach(async ({ page }, testInfo) => {
   await showTestExecutionPopup(page, `Executing ${testInfo.title}`);

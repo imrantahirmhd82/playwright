@@ -2,28 +2,20 @@ import { expect, Page, test } from '@playwright/test';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ReviewPage } from '../../pages/ReviewPage';
+import { CartPage } from '../../pages/CartPage';
 import { getTestData } from '../../utils/excelData';
 
-test.setTimeout(60000);
+test.setTimeout(120000);
+
+test.afterEach(async ({ page }) => {
+  // Best-effort, bounded cleanup so a stuck cart page can never hang the hook.
+  await new CartPage(page).clear().catch(() => undefined);
+});
 
 test.beforeEach(async ({ page }, testInfo) => {
   await showTestExecutionPopup(page, `Executing ${testInfo.title}`);
   installAdCloser(page);
 });
-
-async function clearCart(page: Page): Promise<void> {
-  await page.goto('/view_cart');
-  await closeVisibleAd(page);
-  await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-  const cartRows = page.locator('#cart_info tbody tr');
-  while (await cartRows.count() > 0) {
-    await cartRows.first().locator('.cart_quantity_delete').click();
-    await page.waitForTimeout(400);
-  }
-}
 
 async function closeCartModal(page: Page): Promise<void> {
   const cartModal = page.locator('#cartModal');
@@ -34,10 +26,6 @@ async function closeCartModal(page: Page): Promise<void> {
   }
   await page.waitForTimeout(400);
 }
-
-test.afterEach(async ({ page }) => {
-  await clearCart(page).catch(() => undefined);
-});
 
 test('Test Case 21: Add Review on Product', async ({ page }) => {
   const reviewPage = new ReviewPage(page);

@@ -20,9 +20,18 @@ export class CartPage extends BasePage {
   async clear(): Promise<void> {
     await this.open();
     const rows = this.page.locator('#cart_info tbody tr');
-    while (await rows.count() > 0) {
-      await rows.first().locator('.cart_quantity_delete').click();
+    // Bounded loop: deleting a row must reduce the row count, otherwise stop so
+    // a stuck page can never hang the calling test or its afterEach hook.
+    for (let guard = 0; guard < 20; guard++) {
+      const count = await rows.count();
+      if (count === 0) {
+        return;
+      }
+      await rows.first().locator('.cart_quantity_delete').click().catch(() => undefined);
       await this.waitAfterAction();
+      if (await rows.count() >= count) {
+        return;
+      }
     }
   }
 
