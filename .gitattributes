@@ -1,0 +1,17 @@
+# Ensure binary assets are never altered by line-ending or text normalization.
+# Without this, cloning on a machine with core.autocrlf=true can corrupt the
+# .xlsx workbook (its bytes look like text to Git), which breaks every test that
+# reads test data from Users.xlsx.
+*.xlsx binary
+*.xls  binary
+*.docx binary
+*.doc  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.webm binary
+*.mp4  binary

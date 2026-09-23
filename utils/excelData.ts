@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx';
+import * as fs from 'fs';
+import * as path from 'path';
 import { RegistrationDetails } from '../pages/SignupPage';
 
 export type LoginValidation = {
@@ -7,7 +9,19 @@ export type LoginValidation = {
   password: string;
 };
 
-const workbookPath = 'testData/Users.xlsx';
+// Resolve the workbook independently of the current working directory so the
+// suite reads the same file whether it is launched from the repo root, an IDE,
+// or CI. Playwright may transpile/bundle this module, so __dirname is not
+// always the on-disk utils folder; fall back to cwd-based candidates.
+function resolveWorkbookPath(): string {
+  const candidates = [
+    path.resolve(__dirname, '..', 'testData', 'Users.xlsx'),
+    path.resolve(process.cwd(), 'testData', 'Users.xlsx')
+  ];
+  return candidates.find(candidate => fs.existsSync(candidate)) ?? candidates[1];
+}
+
+const workbookPath = resolveWorkbookPath();
 
 function readSheet<T>(sheetName: string): T[] {
   const workbook = XLSX.readFile(workbookPath);
