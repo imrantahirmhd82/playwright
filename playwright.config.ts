@@ -5,6 +5,11 @@ export default defineConfig({
 
   testDir: './tests',
   workers: 1,
+  // Long end-to-end flows against a live site can be slow; keep a generous
+  // global budget and retry only in CI to absorb network/ad flakiness.
+  timeout: 120000,
+  expect: { timeout: 10000 },
+  retries: process.env.CI ? 2 : 0,
   use: {
     baseURL: 'https://automationexercise.com',
     // CI runners do not provide an X server, so the suite must never launch a headed browser.
@@ -19,6 +24,7 @@ export default defineConfig({
   },
 
   reporter: [
-    ['html']
+    ['html'],
+    ['list']
   ]
 });
