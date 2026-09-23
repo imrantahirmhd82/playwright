@@ -1,10 +1,11 @@
 import { expect } from '@playwright/test';
 import { closeVisibleAd } from '../utils/adHandler';
+import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
 export class ProductsPage extends BasePage {
   async open(): Promise<void> {
-    await this.page.goto('/products');
+    await gotoWithRetry(this.page, '/products');
     await closeVisibleAd(this.page);
     await this.verifyTitle();
     await expect(this.page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
@@ -42,7 +43,7 @@ export class ProductsPage extends BasePage {
   }
 
   async openProductDetails(productId: string): Promise<void> {
-    await this.page.goto(`/product_details/${productId}`);
+    await gotoWithRetry(this.page, `/product_details/${productId}`);
     await closeVisibleAd(this.page);
     await expect(this.page.locator('.product-information')).toBeVisible();
     await this.waitAfterAction();

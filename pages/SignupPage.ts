@@ -1,4 +1,6 @@
 import { expect, Page } from '@playwright/test';
+import { closeVisibleAd } from '../utils/adHandler';
+import { gotoWithRetry } from '../utils/navigation';
 
 export type RegistrationDetails = {
   name: string;
@@ -20,8 +22,24 @@ export class SignupPage {
   constructor(private readonly page: Page) {}
 
   async openSignupForm(): Promise<void> {
-    await this.page.getByRole('link', { name: 'Signup / Login' }).click();
-    await expect(this.page.getByText('New User Signup!')).toBeVisible();
+    const signupHeading = this.page.getByText('New User Signup!');
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      await closeVisibleAd(this.page);
+      await this.page
+        .getByRole('link', { name: 'Signup / Login' })
+        .click({ timeout: 10000 })
+        .catch(() => undefined);
+      if (await signupHeading.isVisible({ timeout: 8000 }).catch(() => false)) {
+        return;
+      }
+      // A slow navigation or the "heavy load (queue full)" page can leave us off
+      // the login form; fall back to a direct, retried navigation.
+      await gotoWithRetry(this.page, '/login');
+      if (await signupHeading.isVisible({ timeout: 8000 }).catch(() => false)) {
+        return;
+      }
+    }
+    await expect(signupHeading).toBeVisible();
   }
 
   async startSignup(name: string, email: string): Promise<void> {
