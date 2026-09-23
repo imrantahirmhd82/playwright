@@ -2,35 +2,44 @@ import { expect, Page } from '@playwright/test';
 import { RegistrationDetails, SignupPage } from '../pages/SignupPage';
 import { getRegistrationData } from './excelData';
 
-function createReplacementUser(previousUser: RegistrationDetails): RegistrationDetails {
-  const uniqueId = Date.now();
-  return {
-    ...previousUser,
-    name: `Automation Static User ${uniqueId}`,
-    email: `automation.static.user.${uniqueId}@example.com`
-  };
-}
-
+/**
+ * Ensures the "static" user defined in testData/Users.xlsx is signed in and
+ * returns its details. The workbook remains the single source of truth: no
+ * random replacement user is generated.
+ *
+ * Flow:
+ *   1. Try to log in with the workbook user (it usually already exists).
+ *   2. If the account does not exist yet, register it with the same details.
+ */
 export async function ensureStaticUser(page: Page): Promise<RegistrationDetails> {
-  const savedUser = getRegistrationData('static');
+  const staticUser = getRegistrationData('static');
   const signupPage = new SignupPage(page);
+  const loggedInUser = page.getByText(`Logged in as ${staticUser.name}`);
 
   await signupPage.openSignupForm();
-  await signupPage.login(savedUser.email, savedUser.password);
+  await signupPage.login(staticUser.email, staticUser.password);
 
-  const loggedInUser = page.getByText(`Logged in as ${savedUser.name}`);
-  if (await loggedInUser.isVisible({ timeout: 7000 }).catch(() => false)) {
-    return savedUser;
+  const loginResult = await expect(loggedInUser)
+    .toBeVisible({ timeout: 15000 })
+    .then(() => 'logged-in' as const)
+    .catch(() => 'failed' as const);
+  if (loginResult === 'logged-in') {
+    return staticUser;
   }
 
-  await expect(page.getByText('Your email or password is incorrect!')).toBeVisible({
-    timeout: 10000
-  });
+  // The account is not usable with the stored credentials. Register the same
+  // workbook user if the email is still free; otherwise surface the problem.
+  await signupPage.openSignupForm();
+  const openedSignup = await signupPage.startSignupIfNew(staticUser.name, staticUser.email);
+  if (!openedSignup) {
+    throw new Error(
+      `Static user from Users.xlsx (${staticUser.email}) already exists but could not be logged in. ` +
+        'Update the password in testData/Users.xlsx (User Registration, scenario "static").'
+    );
+  }
 
-  const replacementUser = createReplacementUser(savedUser);
-  await signupPage.startSignup(replacementUser.name, replacementUser.email);
-  await signupPage.completeRegistration(replacementUser);
+  await signupPage.completeRegistration(staticUser);
   await signupPage.continueAfterAccountCreation();
-  await expect(page.getByText(`Logged in as ${replacementUser.name}`)).toBeVisible();
-  return replacementUser;
+  await expect(loggedInUser).toBeVisible();
+  return staticUser;
 }

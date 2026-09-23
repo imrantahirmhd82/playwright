@@ -49,6 +49,21 @@ export class SignupPage {
     await expect(this.page.getByText('Enter Account Information')).toBeVisible();
   }
 
+  /**
+   * Starts a signup and reports whether a brand new account form was opened.
+   * Returns false when the email is already registered (the site shows an
+   * "Email Address already exist!" error instead of the account form).
+   */
+  async startSignupIfNew(name: string, email: string): Promise<boolean> {
+    await this.page.locator('[data-qa="signup-name"]').fill(name);
+    await this.page.locator('[data-qa="signup-email"]').fill(email);
+    await this.page.getByRole('button', { name: 'Signup' }).click();
+    const accountInfo = this.page.getByText('Enter Account Information');
+    const emailExists = this.page.getByText('Email Address already exist!');
+    await expect(accountInfo.or(emailExists)).toBeVisible({ timeout: 10000 });
+    return accountInfo.isVisible().catch(() => false);
+  }
+
   async completeRegistration(details: RegistrationDetails): Promise<void> {
     await this.page.locator('#id_gender1').check();
     await this.page.locator('[data-qa="password"]').fill(details.password);
