@@ -62,7 +62,14 @@ export class ProductsPage extends BasePage {
   }
 
   async openTshirtsCategory(): Promise<void> {
-    await this.open();
+    const tshirtsLink = this.page.locator('a[href="/category_products/3"]');
+    // The category sidebar is rendered on every page, so only run the full
+    // (retried) Products navigation when the link is missing. Re-navigating
+    // unconditionally burned the whole test budget mid-flow on CI (Test Case 8
+    // timed out at the end of this method).
+    if ((await tshirtsLink.count()) === 0) {
+      await this.open();
+    }
     // Expand the "Men" category panel; retry the toggle until the panel is open.
     const menPanel = this.page.locator('#Men');
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -70,12 +77,15 @@ export class ProductsPage extends BasePage {
       if (await menPanel.evaluate(el => el.classList.contains('in')).catch(() => false)) {
         break;
       }
-      await this.page.locator('a[href="#Men"]').click({ force: true }).catch(() => undefined);
+      await this.page.locator('a[href="#Men"]').first().click({ force: true }).catch(() => undefined);
       await this.waitAfterAction();
     }
 
     await closeVisibleAd(this.page);
-    await this.page.locator('a[href="/category_products/3"]').click().catch(() => undefined);
+    // Bounded click: a stuck panel or overlay must never hang the test; when
+    // the click does not go through, ensureUrl falls back to a direct,
+    // retried navigation to the category page.
+    await tshirtsLink.first().click({ timeout: 5000 }).catch(() => undefined);
     await this.ensureUrl('/category_products/3');
     await this.waitAfterAction();
   }

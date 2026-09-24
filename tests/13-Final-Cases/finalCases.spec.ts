@@ -9,7 +9,9 @@ import { ScrollPage } from '../../pages/ScrollPage';
 import { getTestData } from '../../utils/excelData';
 import { gotoWithRetry } from '../../utils/navigation';
 
-test.setTimeout(120000);
+// End-to-end checkout flows (login, cart, payment, invoice, scroll) against a
+// live site; 120s was not enough once interstitial recovery navigations run.
+test.setTimeout(240000);
 
 const waitAfterAction = (page: Page): Promise<void> => page.waitForTimeout(400);
 

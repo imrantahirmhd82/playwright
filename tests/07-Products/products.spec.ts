@@ -3,7 +3,9 @@ import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { ProductsPage } from '../../pages/ProductsPage';
 
-test.setTimeout(120000);
+// Multi-page flow against a live site (products, details, category, brand);
+// give it enough budget so retried interstitial navigations cannot time it out.
+test.setTimeout(240000);
 
 test.beforeEach(async ({ page }, testInfo) => {
   await showTestExecutionPopup(page, `Executing ${testInfo.title}`);
