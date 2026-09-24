@@ -1,10 +1,11 @@
 import { expect } from '@playwright/test';
 import { closeVisibleAd } from '../utils/adHandler';
+import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
 export class ScrollPage extends BasePage {
   async openAndScrollToFooter(): Promise<void> {
-    await this.page.goto('/');
+    await gotoWithRetry(this.page, '/');
     await this.page.locator('footer').scrollIntoViewIfNeeded();
     await this.waitAfterAction();
     await expect(this.page.locator('footer')).toBeVisible();

@@ -6,6 +6,7 @@ import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ProductsPage } from '../../pages/ProductsPage';
 import { CartPage } from '../../pages/CartPage';
 import { getRegistrationData, getTestData } from '../../utils/excelData';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(120000);
 
@@ -69,7 +70,7 @@ test('Test Case 14: Place Order - Register while Checkout', async ({ page }) => 
   });
 
   await test.step('3. Return to checkout and verify the order review', async () => {
-    await page.goto('/view_cart');
+    await gotoWithRetry(page, '/view_cart');
     await closeVisibleAd(page);
     await page.waitForTimeout(400);
     await openCheckout(page);
@@ -79,7 +80,7 @@ test('Test Case 14: Place Order - Register while Checkout', async ({ page }) => 
 
 test('Test Case 15: Place Order - Register before Checkout', async ({ page }) => {
   await test.step('1. Register a new user before checkout', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await closeVisibleAd(page);
     await createOrderUser(page);
   });
@@ -93,7 +94,7 @@ test('Test Case 15: Place Order - Register before Checkout', async ({ page }) =>
 
 test('Test Case 16: Place Order - Login before Checkout', async ({ page }) => {
   await test.step('1. Login before checkout', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await closeVisibleAd(page);
     const user = await ensureStaticUser(page);
     await expect(page.getByText(`Logged in as ${user.name}`)).toBeVisible();

@@ -1,9 +1,10 @@
 import { expect } from '@playwright/test';
+import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
 export class HomePage extends BasePage {
   async open(): Promise<void> {
-    await this.page.goto('/');
+    await gotoWithRetry(this.page, '/');
     await this.verifyTitle();
   }
 

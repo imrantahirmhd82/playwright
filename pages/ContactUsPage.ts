@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
 export class ContactUsPage extends BasePage {
@@ -9,7 +10,7 @@ export class ContactUsPage extends BasePage {
   readonly submitButton = this.page.locator('[data-qa="submit-button"]');
 
   async open(): Promise<void> {
-    await this.page.goto('/contact_us');
+    await gotoWithRetry(this.page, '/contact_us');
     await this.verifyTitle();
     await expect(this.page.getByText('GET IN TOUCH')).toBeVisible();
   }

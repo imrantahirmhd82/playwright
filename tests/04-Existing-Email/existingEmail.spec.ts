@@ -3,6 +3,7 @@ import { RegistrationDetails, SignupPage } from '../../pages/SignupPage';
 import { ensureStaticUser } from '../../utils/staticUser';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(60000);
 
@@ -17,7 +18,7 @@ test('Test Case 5: Register User with existing email', async ({ page }) => {
   let staticUser: RegistrationDetails;
 
   await test.step('Launch browser and verify the home page', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await expect(page).toHaveTitle(/Automation Exercise/);
   });
 

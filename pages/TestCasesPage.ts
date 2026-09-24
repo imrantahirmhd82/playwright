@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { closeVisibleAd } from '../utils/adHandler';
+import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
 export class TestCasesPage extends BasePage {
@@ -10,7 +11,7 @@ export class TestCasesPage extends BasePage {
   }
 
   async openFromHero(): Promise<void> {
-    await this.page.goto('/');
+    await gotoWithRetry(this.page, '/');
     await this.page.locator('a.test_cases_list:visible').first().click();
     await this.ensureOnTestCasesPage();
     await this.waitAfterAction();
@@ -25,7 +26,7 @@ export class TestCasesPage extends BasePage {
     // Ad interstitials can hijack navigation with a "#google_vignette" hash
     // before the real page loads; fall back to a direct navigation if so.
     if (this.page.url().includes('#google_vignette')) {
-      await this.page.goto('/test_cases');
+      await gotoWithRetry(this.page, '/test_cases');
     }
     await closeVisibleAd(this.page);
   }

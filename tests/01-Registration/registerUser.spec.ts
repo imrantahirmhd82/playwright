@@ -3,6 +3,7 @@ import { RegistrationDetails, SignupPage } from '../../pages/SignupPage';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
 import { getUniqueRegistrationData } from '../../utils/excelData';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(120000);
 
@@ -17,7 +18,7 @@ test('Test Case 1: Register User', async ({ page }) => {
   const details: RegistrationDetails = getUniqueRegistrationData('registration');
 
   await test.step('Launch browser and verify the home page', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await expect(page).toHaveTitle(/Automation Exercise/);
   });
 

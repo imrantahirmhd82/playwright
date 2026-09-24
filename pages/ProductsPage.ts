@@ -56,7 +56,7 @@ export class ProductsPage extends BasePage {
     await closeVisibleAd(this.page);
     await productLink.click({ force: true });
     if (this.page.url().includes('#google_vignette') && detailsUrl) {
-      await this.page.goto(detailsUrl);
+      await gotoWithRetry(this.page, detailsUrl);
     }
     await this.waitAfterAction();
   }
@@ -101,7 +101,7 @@ export class ProductsPage extends BasePage {
   }
 
   async openCategory(categoryId: string): Promise<void> {
-    await this.page.goto(`/category_products/${categoryId}`);
+    await gotoWithRetry(this.page, `/category_products/${categoryId}`);
     await closeVisibleAd(this.page);
     await this.waitAfterAction();
   }
@@ -113,7 +113,7 @@ export class ProductsPage extends BasePage {
     await closeVisibleAd(this.page);
     await productLink.click({ force: true });
     if (this.page.url().includes('#google_vignette') && detailsUrl) {
-      await this.page.goto(detailsUrl);
+      await gotoWithRetry(this.page, detailsUrl);
     }
     await this.waitAfterAction();
   }

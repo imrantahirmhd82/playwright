@@ -7,6 +7,7 @@ import { CartPage } from '../../pages/CartPage';
 import { CheckoutPage } from '../../pages/CheckoutPage';
 import { ScrollPage } from '../../pages/ScrollPage';
 import { getTestData } from '../../utils/excelData';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(120000);
 
@@ -30,7 +31,7 @@ async function openCheckout(page: Page): Promise<void> {
 }
 
 test('Test Case 23: Verify Address Details in Checkout', async ({ page }) => {
-  await page.goto('/');
+  await gotoWithRetry(page, '/');
   await closeVisibleAd(page);
   const user = await ensureStaticUser(page);
 
@@ -54,7 +55,7 @@ test('Test Case 23: Verify Address Details in Checkout', async ({ page }) => {
 
 test('Test Case 24: Download Invoice after Purchase Order', async ({ page }) => {
   await test.step('1. Login and open checkout', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await closeVisibleAd(page);
     await ensureStaticUser(page);
     await addProduct(page);

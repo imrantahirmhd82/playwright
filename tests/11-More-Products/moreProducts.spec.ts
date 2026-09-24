@@ -5,6 +5,7 @@ import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ProductsPage } from '../../pages/ProductsPage';
 import { CartPage } from '../../pages/CartPage';
 import { getTestData } from '../../utils/excelData';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(60000);
 
@@ -34,7 +35,7 @@ async function clearCart(page: Page): Promise<void> {
 
 test('Test Case 17: Remove Products From Cart', async ({ page }) => {
   await test.step('1. Add a product and open the Cart', async () => {
-    await page.goto('/products');
+    await gotoWithRetry(page, '/products');
     await closeVisibleAd(page);
     await expect(page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
     await page.waitForTimeout(400);
@@ -44,7 +45,7 @@ test('Test Case 17: Remove Products From Cart', async ({ page }) => {
       await page.waitForTimeout(400);
       await page.waitForTimeout(400);
     await addProduct(page);
-    await page.goto('/view_cart');
+    await gotoWithRetry(page, '/view_cart');
     await closeVisibleAd(page);
     await expect(page.locator('#product-1')).toBeVisible();
     await page.waitForTimeout(400);
@@ -78,7 +79,7 @@ test('Test Case 19: View and Cart Brand Products', async ({ page }) => {
   const productsPage = new ProductsPage(page);
   const cartPage = new CartPage(page);
   await test.step('1. Open a brand products page', async () => {
-    await page.goto('/brand_products/Polo');
+    await gotoWithRetry(page, '/brand_products/Polo');
     await closeVisibleAd(page);
     await page.waitForTimeout(400);
   });
@@ -98,12 +99,12 @@ test('Test Case 19: View and Cart Brand Products', async ({ page }) => {
 
 test('Test Case 20: Add two Products and Verify Cart After Login', async ({ page }) => {
   await test.step('1. Add two different products to the Cart', async () => {
-    await page.goto('/products');
+    await gotoWithRetry(page, '/products');
     await closeVisibleAd(page);
     await expect(page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
     await page.waitForTimeout(400);
     await addProduct(page, getTestData('primary_product_id'));
-    await page.goto('/products');
+    await gotoWithRetry(page, '/products');
     await closeVisibleAd(page);
     await expect(page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
     await page.waitForTimeout(400);
@@ -111,7 +112,7 @@ test('Test Case 20: Add two Products and Verify Cart After Login', async ({ page
   });
 
   await test.step('2. Login to the account', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await closeVisibleAd(page);
     const user = await ensureStaticUser(page);
     await expect(page.getByText(`Logged in as ${user.name}`)).toBeVisible();
@@ -119,7 +120,7 @@ test('Test Case 20: Add two Products and Verify Cart After Login', async ({ page
   });
 
   await test.step('3. Verify both selected products remain in the Cart', async () => {
-    await page.goto('/view_cart');
+    await gotoWithRetry(page, '/view_cart');
     await closeVisibleAd(page);
     await page.waitForTimeout(400);
     await expect(page.locator(`#product-${getTestData('primary_product_id')}`)).toBeVisible();

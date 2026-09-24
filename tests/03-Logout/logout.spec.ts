@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { ensureStaticUser } from '../../utils/staticUser';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
+import { gotoWithRetry } from '../../utils/navigation';
 
 test.setTimeout(60000);
 
@@ -13,7 +14,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 // Test Case 4: Logout User
 test('Test Case 4: Logout User', async ({ page }) => {
   await test.step('Launch browser and verify the home page', async () => {
-    await page.goto('/');
+    await gotoWithRetry(page, '/');
     await expect(page).toHaveTitle(/Automation Exercise/);
   });
 

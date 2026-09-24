@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { installAdCloser } from '../../utils/adHandler';
+import { gotoWithRetry } from '../../utils/navigation';
 import { ContactUsPage } from '../../pages/ContactUsPage';
 import { getTestData } from '../../utils/excelData';
 
@@ -59,7 +60,7 @@ test('Test Case 6: Contact Us Form', async ({ page }) => {
   await test.step('9. Return to the Home page', async () => {
     await page.locator('#form-section a.btn-success').click();
     if (page.url().includes('#google_vignette')) {
-      await page.goto('/');
+      await gotoWithRetry(page, '/');
     }
     await expect(page).toHaveURL(/automationexercise\.com\/?$/);
   });
