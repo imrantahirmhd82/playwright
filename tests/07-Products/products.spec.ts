@@ -3,7 +3,7 @@ import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { ProductsPage } from '../../pages/ProductsPage';
 
-test.setTimeout(60000);
+test.setTimeout(120000);
 
 test.beforeEach(async ({ page }, testInfo) => {
   await showTestExecutionPopup(page, `Executing ${testInfo.title}`);

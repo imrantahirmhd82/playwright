@@ -1,0 +1,368 @@
+================================================================================
+PROJECT SUMMARY - Playwright Automation Exercise
+High-level briefing document for assessment with an Automation Architect
+Generated: 24-Sep-2026 | Repo HEAD: 6d121d3 (main)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+- Purpose        : End-to-end UI test automation for the public practice site
+                   https://automationexercise.com
+- Framework      : Playwright Test (@playwright/test ^1.63.0) with TypeScript
+                   (^7.0.2), CommonJS modules, strict mode
+- Style          : Page Object Model (POM) + test.step() hierarchical steps
+- Test data      : Excel-driven (xlsx ^0.18.5) - testData/Users.xlsx plus a
+                   static user, unique user generation per registration run
+- Coverage       : 26 official test cases (Test Case 1-26) mapped to
+                   automationexercise.com requirements
+- Execution      : Serial (workers: 1), headless, 120s test / 10s expect timeout
+- CI/CD          : GitHub Actions (ubuntu-latest, Node LTS), retries in CI
+
+--------------------------------------------------------------------------------
+2. FOLDER STRUCTURE
+--------------------------------------------------------------------------------
+PlaywrightAutomationExercise/
+|-- .github/
+|   `-- workflows/playwright.yml    CI pipeline (push/PR to main/master)
+|-- config/                         (empty - reserved for future config)
+|-- fixtures/                       (empty - reserved for Playwright fixtures)
+|-- pages/                          PAGE OBJECTS (POM layer)
+|   |-- BasePage.ts                 Abstract base class
+|   |-- Homepage.ts                 (HomePage)
+|   |-- SignupPage.ts               Signup/Login/Account/Delete flows
+|   |-- ProductsPage.ts             Products, search, categories, brands
+|   |-- CartPage.ts                 Cart view, verify, review, checkout entry
+|   |-- CheckoutPage.ts             Address details / order review / invoice
+|   |-- ContactUsPage.ts            Contact form + JS dialog handling
+|   |-- ReviewPage.ts               Product review + recommended items carousel
+|   |-- ScrollPage.ts               Scroll up/down (arrow and keyboard)
+|   |-- SubscriptionPage.ts         Newsletter subscription widget
+|   `-- TestCasesPage.ts            Test Cases page (header + hero entry)
+|-- reports/                        Test report output
+|-- testData/
+|   |-- Users.xlsx                  Registration/login/static-user sheets
+|   `-- Test Upload File.docx       Contact Us file-upload payload
+|-- tests/                          SPECS, organized per feature/requirement
+|   |-- 01-Registration/  registerUser.spec.ts      TC1
+|   |-- 02-Login/         login.spec.ts             TC2, TC3
+|   |-- 03-Logout/        logout.spec.ts            TC4
+|   |-- 04-Existing-Email/ existingEmail.spec.ts    TC5
+|   |-- 05-Contact-Us/    contactUs.spec.ts         TC6
+|   |-- 06-Test-Cases/    testCases.spec.ts         TC7
+|   |-- 07-Products/      products.spec.ts          TC8
+|   |-- 08-Search-Subscription/ searchSubscription.spec.ts  TC9, TC10
+|   |-- 09-Cart/          cart.spec.ts              TC11, TC12, TC13
+|   |-- 10-Orders/        orders.spec.ts            TC14, TC15, TC16
+|   |-- 11-More-Products/ moreProducts.spec.ts      TC17-TC20
+|   |-- 12-Reviews-Recommended/ reviewsRecommended.spec.ts  TC21, TC22
+|   |-- 13-Final-Cases/   finalCases.spec.ts        TC23-TC26
+|   |-- Login/  Product/           (stray legacy folders - see section 9)
+|-- utils/                          SHARED HELPERS (non-page support objects)
+|   |-- adHandler.ts                Pop-up ad cleanup
+|   |-- excelData.ts                Excel read/write + test data lookup
+|   |-- navigation.ts               Resilient navigation with retry
+|   |-- staticUser.ts               Deterministic existing user setup
+|   `-- testExecutionPopup.ts       In-page test execution indicator
+|-- playwright.config.ts            Playwright configuration
+|-- tsconfig.json                   TypeScript configuration
+|-- package.json / package-lock.json
+|-- .gitattributes / .gitignore
+`-- PROJECT_SUMMARY.txt             (this document)
+
+--------------------------------------------------------------------------------
+3. PAGE OBJECT MODEL (POM) DESIGN
+--------------------------------------------------------------------------------
+BasePage (abstract)
+  - constructor(protected readonly page: Page)
+  - waitAfterAction(): fixed 400ms settle wait after interactions (x2 calls)
+  - verifyTitle(): expect(page).toHaveTitle(/Automation Exercise/)
+  - All page classes hold Playwright locators (getByRole, getByText, data-qa
+    attributes, CSS) as class properties or getter methods, and expose
+    async business-flow methods (open, fill, submit, verify*).
+
+Page classes and their responsibilities:
+
+  Homepage (Homepage.ts)
+    - open(), verifyLoggedInAs(name) -> "Logged in as {name}" visible
+
+  SignupPage (SignupPage.ts)
+    - openSignupForm(), startSignup(name, email), login(email, password)
+    - completeRegistration(details) - account info + address + create
+    - continueAfterAccountCreation(name?) - Account Created + logged-in checks
+    - accountInfoVisible() - OR assertion: "Enter Account Information" OR
+      "Email Address already exist!"
+    - deleteAccount() - "Account Deleted!" verification
+
+  ProductsPage (ProductsPage.ts)
+    - open(), search(term), addProduct(id), addFirstVisibleProduct()
+    - openProductDetails(id), openFirstProductDetails(),
+      openFirstVisibleProductDetails()
+    - openCategory(id), openBrand(name), openTshirtsCategory()
+    - verifyLoggedInAs(name), cart modal open/close handling
+
+  CartPage (CartPage.ts)
+    - open(), ensureProductInCart(), verifyProduct(id) - #product-{id}
+    - proceedToCheckout(), expectReview(productId) - review row visible
+    - cart marker visibility assertions
+
+  CheckoutPage (CheckoutPage.ts)
+    - verifyTitle() -> URL /checkout/, verifyAddressDetails(),
+      verifyOrderReview(), verifyProduct(id)
+    - Invoice download flow (used by TC24)
+
+  ContactUsPage (ContactUsPage.ts)
+    - open(), fillForm(details), submitAndAcceptConfirmation()
+    - Verifies GET IN TOUCH heading, field values (toHaveValue),
+      submit button visible + enabled, handles native JS dialog
+      (type === 'confirm', message === 'Press OK to proceed!')
+
+  ReviewPage (ReviewPage.ts)
+    - submit(reviewText) - #review-form visible, alert-success text
+      "Thank you for your review."
+    - addRecommendedProduct() - carousel add-to-cart + cart modal class check
+    - expectLoaded()
+
+  ScrollPage (ScrollPage.ts)
+    - openAndScrollToFooter() - footer visible assertion
+    - scrollToTopWithArrow() / scrollToTopWithoutArrow()
+
+  SubscriptionPage (SubscriptionPage.ts)
+    - subscribe(email), expectSuccess() ->
+      "You have been successfully subscribed!"
+
+  TestCasesPage (TestCasesPage.ts)
+    - openFromHeader(), openFromHero()
+    - URL /test_cases/ + "test cases" heading visible
+
+--------------------------------------------------------------------------------
+4. ASSERTIONS - PAGE-LEVEL (42 expect calls inside page objects)
+--------------------------------------------------------------------------------
+Grouped by assertion type and location:
+
+  toHaveTitle        BasePage.verifyTitle() - /Automation Exercise/
+  toHaveURL          CheckoutPage - /automationexercise\.com\/checkout/
+                     TestCasesPage - /automationexercise\.com\/test_cases/
+  toBeVisible        CartPage      - cart marker, "Proceed To Checkout",
+                                     #product-{id}, review rows
+                     CheckoutPage  - "Address Details", "Review Your Order",
+                                     #product-{id}
+                     ContactUsPage - "GET IN TOUCH", submit button
+                     ProductsPage  - "ALL PRODUCTS" heading, add-to-cart,
+                                     .product-information, product link
+                     Homepage      - "Logged in as {name}"
+                     SignupPage    - "Signup" heading, "Enter Account
+                                     Information" OR "Email Address already
+                                     exist!", "Account Created!",
+                                     logged-in, "Account Deleted!"
+                     ScrollPage    - footer
+                     ReviewPage    - #review-form, recommended product
+                     TestCasesPage - heading /test cases/i
+                     SubscriptionPage - subscribe email field
+  not.toBeVisible    ProductsPage / ReviewPage - cart modal closed
+                                     (class no longer /show/)
+  toHaveClass        ProductsPage / ReviewPage - #cartModal /show/
+  toHaveText         CartPage/ReviewPage - "Thank you for your review."
+                     SubscriptionPage   - "You have been successfully
+                                           subscribed!"
+  toHaveValue        ContactUsPage - name/email/subject/message field values
+  toBeEnabled        ContactUsPage - submit button
+  toBe (dialog)      ContactUsPage - dialog.type() === 'confirm',
+                                     dialog.message() === 'Press OK to
+                                     proceed!'
+  toHaveCount(0)     (spec-level) MoreProducts - removed product gone
+
+Note: assertions are split between page objects (encapsulated verification
+methods like verify*, expect*, verifyTitle) and spec files (flow-level
+assertions) - a hybrid POM approach.
+
+--------------------------------------------------------------------------------
+5. ASSERTIONS - SPEC-LEVEL (per test case)
+--------------------------------------------------------------------------------
+Structure: every test uses test.step() blocks mirroring the numbered
+requirement steps; assertions live inside page-object verify methods or
+inline in the spec.
+
+  01-Registration / TC1 Register User
+      - Signup form opens; "Enter Account Information"; "Account Created!";
+        "Logged in as {name}"; "Account Deleted!"
+  02-Login / TC2 Login with correct credentials
+      - logout link, login form, logged-in banner, then account deletion
+    TC3 Login with incorrect credentials
+      - expect getByText('Your email or password is incorrect!') visible
+  03-Logout / TC4 Logout
+      - ensureStaticUser, logout link click, login form visible again
+  04-Existing-Email / TC5
+      - expect getByText('Email Address already exist!') visible
+  05-Contact-Us / TC6
+      - GET IN TOUCH, dialog accept, inline success
+        .status.alert.alert-success text, return home
+  06-Test-Cases / TC7
+      - header and hero navigation both land on Test Cases page
+  07-Products / TC8
+      - product cards count > 0, URL /product_details/\d+,
+        T-shirts category + Babyhug brand filtering
+  08-Search-Subscription / TC9
+      - URL matches /products\?search={term}/, searched items visible
+    TC10 Subscription on Home
+      - "You have been successfully subscribed!"
+  09-Cart / TC11 Subscription in Cart
+      - subscription success message
+    TC12 Add Products in Cart
+      - both products visible in cart (#product-{id})
+    TC13 Product Quantity
+      - quantity value matches in cart
+  10-Orders / TC14 Register while Checkout
+      - logged-in banner, Address Details / order review after registration
+    TC15 Register before Checkout / TC16 Login before Checkout
+      - full order placement through checkout and payment confirmation
+  11-More-Products / TC17 Remove Products
+      - expect(page.locator('#product-1')).toHaveCount(0)
+    TC18 Category Products - URL /category_products/1
+    TC19 Brand Products    - URL /brand_products/Polo + cart check
+    TC20 Cart persists after login - both products still in cart,
+      cart cleared in teardown step
+  12-Reviews-Recommended / TC21
+      - "Thank you for your review."
+    TC22 Recommended product
+      - cart modal opens, product in cart, review success message
+  13-Final-Cases / TC23 Address Details - "Logged in as", "Address Details"
+    TC24 Invoice download after purchase - download event + file validation
+    TC25 Scroll up with arrow    - SUBSCRIPTION / title heading visible again
+    TC26 Scroll up without arrow - page scrolled back to top
+
+Assertion style summary: Playwright web-first expect() matchers only
+(toBeVisible / toHaveText / toHaveURL / toHaveTitle / toHaveValue /
+toHaveClass / toHaveCount / toBeEnabled), no raw DOM text comparisons.
+
+--------------------------------------------------------------------------------
+6. SUPPORT / OTHER OBJECTS (utils)
+--------------------------------------------------------------------------------
+- adHandler.ts
+    closeVisibleAd(page)   - dismisses subscription/overlay ads after actions
+    installAdCloser(page)  - installs auto ad-closer on the page
+- excelData.ts
+    resolveWorkbookPath()  - CWD-independent path to testData/Users.xlsx
+    readSheet<T>(name)     - generic row reader
+    getRegistrationData(scenario) / getUniqueRegistrationData(scenario)
+                           - unique emails per run to avoid collisions
+    saveRegistrationData(scenario, data) - write-back support
+    getLoginData(scenario) - login validation rows
+    getTestData(key)       - key/value lookup (product ids, search term,
+                             review text, subscription emails, etc.)
+- navigation.ts
+    gotoWithRetry(page, url, attempts=4) - retry navigation; detects
+                           "heavy load" pages before retrying
+- staticUser.ts
+    ensureStaticUser(page) - guarantees the Users.xlsx static account exists
+                             (used by Logout/Existing-Email tests)
+- testExecutionPopup.ts
+    showTestExecutionPopup(page, testTitle) - optional in-page indicator
+
+Test data files: testData/Users.xlsx (sheets for registration scenarios,
+login validation, static user, generic key/values) and
+testData/Test Upload File.docx (Contact Us upload).
+
+--------------------------------------------------------------------------------
+7. CONFIGURATION & TOOLING
+--------------------------------------------------------------------------------
+playwright.config.ts
+  testDir        : ./tests
+  workers        : 1 (fully serial - safe for shared live site/state)
+  timeout        : 120,000 ms global test budget
+  expect.timeout : 10,000 ms
+  retries        : 2 in CI, 0 locally
+  baseURL        : https://automationexercise.com
+  headless       : true (CI has no X server), viewport: null,
+                   launchOptions: --start-maximized
+  artifacts      : screenshot only-on-failure, video retain-on-failure,
+                   trace on-first-retry
+  reporters      : CI -> [github] + [html] (per-test ::error:: annotations
+                   surface assertion messages in the Checks API)
+                   local -> [html] + [list]
+
+tsconfig.json: target ES2022, module/moduleResolution Node16,
+  esModuleInterop, strict: true, types [node, @playwright/test],
+  includes config/, fixtures/, pages/, tests/, utils/
+
+package.json scripts:
+  test                 - full suite
+  test:login           - tests/02-Login/login.spec.ts
+  test:invalid-login   - login.spec.ts -g "Test Case 3"
+  test:register        - tests/01-Registration/registerUser.spec.ts
+  test:logout          - tests/03-Logout/logout.spec.ts
+  test:existing-email  - tests/04-Existing-Email/existingEmail.spec.ts
+  test:contact         - tests/05-Contact-Us/contactUs.spec.ts
+
+Dependencies: @playwright/test ^1.63.0, playwright ^1.63.0,
+  playwright-core ^1.63.0, typescript ^7.0.2, @types/node ^26.5.0,
+  xlsx ^0.18.5, undici-types ^8.9.0
+
+--------------------------------------------------------------------------------
+8. CI/CD AND GIT DETAILS
+--------------------------------------------------------------------------------
+GitHub Actions (.github/workflows/playwright.yml) - "Playwright Tests"
+  - Triggers : push + pull_request on [main, master]
+  - Runner   : ubuntu-latest, timeout 60 minutes, Node lts/*
+  - Steps    : checkout@v7 -> setup-node@v7 -> npm ci ->
+               npx playwright install --with-deps -> npx playwright test
+  - Artifacts: playwright-report/ uploaded (actions/upload-artifact@v7),
+               retention 30 days, uploaded even on failure (!cancelled())
+  - CI env   : retries=2, github reporter for Checks-API annotations,
+               headless enforced
+
+Git
+  Remote     : origin -> https://github.com/imrantahirmhd82/playwright.git
+  Branch     : main (HEAD, tracks origin/main), local branch agents/hi
+  HEAD       : 6d121d3 "Use github reporter in CI to surface per-test
+               failure annotations"
+  Working tree: clean at time of writing
+  .gitattributes: Excel/data files forced to binary (CRLF-safe) handling
+  .gitignore     : node_modules, reports/playwright outputs excluded
+
+  Recent commit themes (chronological, newest first):
+    6d121d3  Github reporter in CI for per-test failure annotations
+    0b4ee47  CI retries and global timeouts for live-site flakiness
+    5150cb2  Harden ad cleanup, cart teardown, navigation; raise timeouts
+    ad64512  Use Users.xlsx static user; CI actions to v7
+    bc3e9c5  Binary Excel handling; CWD-independent workbook path
+    6b2dc0a  Navigation resilience for heavy-load pages; checkout/scroll fixes
+    6cebc24  Spreadsheet data handling + TypeScript build fixes
+    6a36ac2  Unique users in registration tests (branch agents/hi)
+    850ab29 / d5476b6  Headless runs in CI
+    958eabd  Case-sensitive HomePage import fix
+
+--------------------------------------------------------------------------------
+9. OBSERVATIONS / TALKING POINTS FOR THE ARCHITECT
+--------------------------------------------------------------------------------
+1. Hybrid assertion placement: ~42 expects live inside page objects
+   (verify*/expect* methods) while flow-level expects stay in specs. Worth
+   discussing: should all assertions live in specs, or is encapsulated
+   page-level verification acceptable?
+2. Fixed waits: BasePage.waitAfterAction() uses waitForTimeout(400) (and is
+   called twice in sequence). Preferred Playwright practice is web-first
+   assertions with auto-retrying locators instead of hard sleeps.
+3. Serial execution (workers: 1): chosen for stability against a shared live
+   site with ads; trade-off is total suite duration. Parallel-safe design
+   (unique users via getUniqueRegistrationData) already partially exists.
+4. Empty reserved folders: config/ and fixtures/ exist but contain no files
+   (tsconfig still includes them) - candidates for custom fixtures/global
+   setup or removal.
+5. Legacy folders: tests/Login/ and tests/Product/ are unnumbered strays
+   alongside the canonical 01-13 numbered folders - candidates for cleanup
+   or migration.
+6. Flakiness strategy: live-site ads are handled by adHandler, navigation
+   retries by gotoWithRetry, CI retries=2, trace on first retry, and
+   video/screenshot on failure - a layered defense against a non-deterministic
+   target.
+7. Test data: Excel as the single source of truth with write-back support
+   (saveRegistrationData) and unique-user generation; alternative would be
+   JSON/YAML fixtures or Playwright's built-in data handling.
+8. Reporters: dual reporter setup (github for PR annotations + html for
+   humans) demonstrates CI-aware configuration via process.env.CI.
+9. Only 6 npm scripts exist while there are 13 feature folders - consider a
+   parameterised script (e.g. npm test -- --grep or folder args) for the rest.
+
+================================================================================
+END OF SUMMARY
+================================================================================

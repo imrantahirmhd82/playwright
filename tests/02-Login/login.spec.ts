@@ -25,8 +25,7 @@ test('Test Case 2: Login User with correct email and password', async ({ page })
         await signupPage.openSignupForm();
         await signupPage.startSignup(details.name, details.email);
         await signupPage.completeRegistration(details);
-        await signupPage.continueAfterAccountCreation();
-        await expect(page.getByText(`Logged in as ${details.name}`)).toBeVisible();
+        await signupPage.continueAfterAccountCreation(details.name);
     });
 
     await test.step('Log out and verify the login form', async () => {

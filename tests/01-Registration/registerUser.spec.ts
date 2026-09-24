@@ -34,8 +34,7 @@ test('Test Case 1: Register User', async ({ page }) => {
   });
 
   await test.step('Verify account creation and continue', async () => {
-    await signupPage.continueAfterAccountCreation();
-    await expect(page.getByText(`Logged in as ${details.name}`)).toBeVisible();
+    await signupPage.continueAfterAccountCreation(details.name);
   });
 
   await test.step('Delete the account and verify deletion', async () => {

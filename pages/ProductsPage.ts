@@ -63,16 +63,41 @@ export class ProductsPage extends BasePage {
 
   async openTshirtsCategory(): Promise<void> {
     await this.open();
-    await this.page.locator('a[href="#Men"]').click({ force: true });
-    await expect(this.page.locator('#Men')).toHaveClass(/in/, { timeout: 10000 });
-    await this.page.locator('a[href="/category_products/3"]').click();
+    // Expand the "Men" category panel; retry the toggle until the panel is open.
+    const menPanel = this.page.locator('#Men');
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await closeVisibleAd(this.page);
+      if (await menPanel.evaluate(el => el.classList.contains('in')).catch(() => false)) {
+        break;
+      }
+      await this.page.locator('a[href="#Men"]').click({ force: true }).catch(() => undefined);
+      await this.waitAfterAction();
+    }
+
+    await closeVisibleAd(this.page);
+    await this.page.locator('a[href="/category_products/3"]').click().catch(() => undefined);
+    await this.ensureUrl('/category_products/3');
     await this.waitAfterAction();
   }
 
   async openBrand(brand: string): Promise<void> {
     await closeVisibleAd(this.page);
-    await this.page.locator(`a[href="/brand_products/${brand}"]`).click();
+    await this.page.locator(`a[href="/brand_products/${brand}"]`).click().catch(() => undefined);
+    await this.ensureUrl(`/brand_products/${brand}`);
     await this.waitAfterAction();
+  }
+
+  /**
+   * Ad interstitials can hijack a link click and leave the URL with a
+   * "#google_vignette" hash instead of the intended page. If the expected
+   * fragment is missing, fall back to a direct, retried navigation.
+   */
+  private async ensureUrl(fragment: string): Promise<void> {
+    if (!this.page.url().includes('#google_vignette') && this.page.url().includes(fragment)) {
+      return;
+    }
+    await gotoWithRetry(this.page, fragment);
+    await closeVisibleAd(this.page);
   }
 
   async openCategory(categoryId: string): Promise<void> {

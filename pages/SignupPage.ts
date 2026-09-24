@@ -85,11 +85,42 @@ export class SignupPage {
     await this.page.getByRole('button', { name: 'Create Account' }).click();
   }
 
-  async continueAfterAccountCreation(): Promise<void> {
+  async continueAfterAccountCreation(name?: string): Promise<void> {
     await expect(this.page.getByText('Account Created!')).toBeVisible();
     await this.page.waitForTimeout(400);
-      await this.page.waitForTimeout(400);
+    await this.page.waitForTimeout(400);
     await this.page.getByRole('link', { name: 'Continue' }).click();
+    await this.settleAfterAccountCreation();
+    if (name) {
+      await this.expectLoggedIn(name);
+    }
+  }
+
+  /**
+   * Google vignette/ad interstitials commonly hijack the post-signup navigation
+   * (the URL keeps a "#google_vignette" hash and the logged-in header is gone).
+   * Retreat to a clean home navigation until the real page is served.
+   */
+  private async settleAfterAccountCreation(): Promise<void> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await closeVisibleAd(this.page);
+      const url = this.page.url();
+      if (/automationexercise\.com\/?$/.test(url) && !url.includes('#google_vignette')) {
+        return;
+      }
+      await gotoWithRetry(this.page, '/');
+    }
+  }
+
+  /** Asserts the header shows the expected user, retrying once after a clean reload. */
+  async expectLoggedIn(name: string): Promise<void> {
+    const loggedIn = this.page.getByText(`Logged in as ${name}`);
+    if (await loggedIn.isVisible({ timeout: 8000 }).catch(() => false)) {
+      return;
+    }
+    await gotoWithRetry(this.page, '/');
+    await closeVisibleAd(this.page);
+    await expect(loggedIn).toBeVisible({ timeout: 15000 });
   }
 
   async deleteAccount(): Promise<void> {
