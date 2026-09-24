@@ -20,16 +20,22 @@ export class CartPage extends BasePage {
   async clear(): Promise<void> {
     await this.open();
     const rows = this.page.locator('#cart_info tbody tr');
-    // Bounded loop: deleting a row must reduce the row count, otherwise stop so
-    // a stuck page can never hang the calling test or its afterEach hook.
+    // Bounded loop: each delete is an AJAX round-trip, so wait for the row
+    // count to actually drop before deciding the click was stuck — otherwise a
+    // slow response aborts the loop early and leaves items behind. The bound
+    // still guarantees a stuck page can never hang the calling test.
     for (let guard = 0; guard < 20; guard++) {
       const count = await rows.count();
       if (count === 0) {
         return;
       }
       await rows.first().locator('.cart_quantity_delete').click().catch(() => undefined);
-      await this.waitAfterAction();
-      if (await rows.count() >= count) {
+      const removed = await expect
+        .poll(() => rows.count(), { timeout: 10000 })
+        .toBeLessThan(count)
+        .then(() => true)
+        .catch(() => false);
+      if (!removed) {
         return;
       }
     }

@@ -33,5 +33,4 @@ export async function showTestExecutionPopup(page: Page, testTitle: string): Pro
     </style>
   `);
   await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
 }

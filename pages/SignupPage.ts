@@ -88,7 +88,6 @@ export class SignupPage {
   async continueAfterAccountCreation(name?: string): Promise<void> {
     await expect(this.page.getByText('Account Created!')).toBeVisible();
     await this.page.waitForTimeout(400);
-    await this.page.waitForTimeout(400);
     await this.page.getByRole('link', { name: 'Continue' }).click();
     await this.settleAfterAccountCreation();
     if (name) {
@@ -127,7 +126,6 @@ export class SignupPage {
     await this.page.getByRole('link', { name: 'Delete Account' }).click();
     await expect(this.page.getByText('Account Deleted!')).toBeVisible();
     await this.page.waitForTimeout(400);
-      await this.page.waitForTimeout(400);
   }
 
   async login(email: string, password: string): Promise<void> {

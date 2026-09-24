@@ -41,10 +41,6 @@ async function createOrderUser(page: Page): Promise<RegistrationDetails> {
   await signupPage.completeRegistration(details);
   await signupPage.continueAfterAccountCreation(details.name);
   await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
   return details;
 }
 

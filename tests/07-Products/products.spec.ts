@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
-import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
+import { installAdCloser } from '../../utils/adHandler';
 import { ProductsPage } from '../../pages/ProductsPage';
 
 // Multi-page flow against a live site (products, details, category, brand);
@@ -21,7 +21,6 @@ test('Test Case 8: Verify All Products and Product Details', async ({ page }) =>
   await test.step('2. Verify all products are displayed', async () => {
     const productCards = page.locator('.features_items .product-image-wrapper');
     await expect(productCards.first()).toBeVisible();
-    await expect(productCards).toHaveCount(await productCards.count());
     expect(await productCards.count()).toBeGreaterThan(0);
   });
 
@@ -58,9 +57,5 @@ test('Test Case 8: Verify All Products and Product Details', async ({ page }) =>
     await expect(page.getByText('Availability:')).toBeVisible();
     await expect(page.getByText('Condition:')).toBeVisible();
     await expect(page.getByText('Brand:')).toBeVisible();
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
-    await page.waitForTimeout(400);
   });
 });

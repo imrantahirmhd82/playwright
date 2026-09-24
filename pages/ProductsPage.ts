@@ -28,6 +28,10 @@ export class ProductsPage extends BasePage {
 
   private async closeCartModal(): Promise<void> {
     const modal = this.page.locator('#cartModal');
+    // The modal only appears once the add-to-cart request succeeds, so waiting
+    // for it guarantees the item is in the cart before the caller navigates
+    // away (an early navigation aborts the request and leaves the cart empty).
+    await expect(modal).toHaveClass(/show/, { timeout: 10000 });
     const continueShopping = modal.locator('button.close-modal');
     if (await continueShopping.isVisible().catch(() => false)) {
       await continueShopping.click({ force: true });

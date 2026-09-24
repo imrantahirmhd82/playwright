@@ -1,5 +1,5 @@
 import { expect, Page, test } from '@playwright/test';
-import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
+import { installAdCloser } from '../../utils/adHandler';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ProductsPage } from '../../pages/ProductsPage';
 import { CartPage } from '../../pages/CartPage';
@@ -15,14 +15,15 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 async function continueAfterAddingProduct(page: Page): Promise<void> {
   const cartModal = page.locator('#cartModal');
+  // The modal only appears after the add-to-cart request succeeds; waiting for
+  // it guarantees the item reached the cart before any navigation, which would
+  // otherwise abort the in-flight request and silently empty the cart.
+  await expect(cartModal).toHaveClass(/show/, { timeout: 10000 });
   const continueShopping = cartModal.locator('button.close-modal');
   if (await continueShopping.isVisible().catch(() => false)) {
     await continueShopping.click({ force: true });
     await expect(cartModal).not.toHaveClass(/show/);
   }
-  await page.waitForTimeout(400);
-  await page.waitForTimeout(400);
-  await page.waitForTimeout(400);
   await page.waitForTimeout(400);
 }
 

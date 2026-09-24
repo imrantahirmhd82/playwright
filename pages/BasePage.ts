@@ -5,7 +5,6 @@ export abstract class BasePage {
 
   protected async waitAfterAction(): Promise<void> {
     await this.page.waitForTimeout(400);
-      await this.page.waitForTimeout(400);
   }
 
   protected async verifyTitle(): Promise<void> {

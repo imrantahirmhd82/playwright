@@ -39,11 +39,6 @@ test('Test Case 17: Remove Products From Cart', async ({ page }) => {
     await closeVisibleAd(page);
     await expect(page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
     await page.waitForTimeout(400);
-      await page.waitForTimeout(400);
-      await page.waitForTimeout(400);
-      await page.waitForTimeout(400);
-      await page.waitForTimeout(400);
-      await page.waitForTimeout(400);
     await addProduct(page);
     await gotoWithRetry(page, '/view_cart');
     await closeVisibleAd(page);
