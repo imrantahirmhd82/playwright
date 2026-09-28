@@ -60,10 +60,14 @@ PlaywrightAutomationExercise/
 |   |-- Login/  Product/           (stray legacy folders - see section 9)
 |-- utils/                          SHARED HELPERS (non-page support objects)
 |   |-- adHandler.ts                Pop-up ad cleanup
+|   |-- browserWindow.ts            Maximize the headed browser window
+|   |-- cartModal.ts                Add-to-cart click + confirmation modal
 |   |-- excelData.ts                Excel read/write + test data lookup
-|   |-- navigation.ts               Resilient navigation with retry
+|   |-- navigation.ts               Resilient navigation with retry (browser
+|   |                               and Cloudflare error pages included)
 |   |-- staticUser.ts               Deterministic existing user setup
-|   `-- testExecutionPopup.ts       In-page test execution indicator
+|   |-- testExecutionPopup.ts       In-page test execution indicator
+|   `-- testFixtures.ts             test/expect re-export + maximize fixture
 |-- playwright.config.ts            Playwright configuration
 |-- tsconfig.json                   TypeScript configuration
 |-- package.json / package-lock.json
@@ -268,13 +272,17 @@ testData/Test Upload File.docx (Contact Us upload).
 --------------------------------------------------------------------------------
 playwright.config.ts
   testDir        : ./tests
-  workers        : 1 (fully serial - safe for shared live site/state)
+  workers        : 2 (parallel; keeps the live-site suite short)
   timeout        : 120,000 ms global test budget
   expect.timeout : 10,000 ms
   retries        : 2 in CI, 0 locally
   baseURL        : https://automationexercise.com
-  headless       : true (CI has no X server), viewport: null,
-                   launchOptions: --start-maximized
+  headless       : true (CI has no display; --headed to watch locally)
+  viewport       : 1280x720 for headless/CI runs (pinned in the firefox
+                   project - devices['Desktop Firefox'] also sets one).
+                   Headed runs are grown to the screen work area by the
+                   maximizedWindow fixture: Firefox has no maximize flag,
+                   --start-maximized is Chromium-only
   artifacts      : screenshot only-on-failure, video retain-on-failure,
                    trace on-first-retry
   reporters      : CI -> [github] + [html] (per-test ::error:: annotations
@@ -425,10 +433,14 @@ PlaywrightAutomationExercise/
 |   |-- Login/  Product/           (stray legacy folders - see section 9)
 |-- utils/                          SHARED HELPERS (non-page support objects)
 |   |-- adHandler.ts                Pop-up ad cleanup
+|   |-- browserWindow.ts            Maximize the headed browser window
+|   |-- cartModal.ts                Add-to-cart click + confirmation modal
 |   |-- excelData.ts                Excel read/write + test data lookup
-|   |-- navigation.ts               Resilient navigation with retry
+|   |-- navigation.ts               Resilient navigation with retry (browser
+|   |                               and Cloudflare error pages included)
 |   |-- staticUser.ts               Deterministic existing user setup
-|   `-- testExecutionPopup.ts       In-page test execution indicator
+|   |-- testExecutionPopup.ts       In-page test execution indicator
+|   `-- testFixtures.ts             test/expect re-export + maximize fixture
 |-- playwright.config.ts            Playwright configuration
 |-- tsconfig.json                   TypeScript configuration
 |-- package.json / package-lock.json
@@ -633,13 +645,17 @@ testData/Test Upload File.docx (Contact Us upload).
 --------------------------------------------------------------------------------
 playwright.config.ts
   testDir        : ./tests
-  workers        : 1 (fully serial - safe for shared live site/state)
+  workers        : 2 (parallel; keeps the live-site suite short)
   timeout        : 120,000 ms global test budget
   expect.timeout : 10,000 ms
   retries        : 2 in CI, 0 locally
   baseURL        : https://automationexercise.com
-  headless       : true (CI has no X server), viewport: null,
-                   launchOptions: --start-maximized
+  headless       : true (CI has no display; --headed to watch locally)
+  viewport       : 1280x720 for headless/CI runs (pinned in the firefox
+                   project - devices['Desktop Firefox'] also sets one).
+                   Headed runs are grown to the screen work area by the
+                   maximizedWindow fixture: Firefox has no maximize flag,
+                   --start-maximized is Chromium-only
   artifacts      : screenshot only-on-failure, video retain-on-failure,
                    trace on-first-retry
   reporters      : CI -> [github] + [html] (per-test ::error:: annotations

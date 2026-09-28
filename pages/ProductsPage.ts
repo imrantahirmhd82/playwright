@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { closeVisibleAd } from '../utils/adHandler';
+import { addToCartAndCloseModal } from '../utils/cartModal';
 import { gotoWithRetry } from '../utils/navigation';
 import { BasePage } from './BasePage';
 
@@ -13,31 +14,16 @@ export class ProductsPage extends BasePage {
   }
 
   async addProduct(productId: string): Promise<void> {
-    await this.page.locator(`.add-to-cart[data-product-id="${productId}"]`).first().click();
-    await this.closeCartModal();
+    await addToCartAndCloseModal(
+      this.page,
+      this.page.locator(`.add-to-cart[data-product-id="${productId}"]`).first()
+    );
   }
 
   async addFirstVisibleProduct(): Promise<void> {
     const product = this.page.locator('.features_items .add-to-cart:visible').first();
     await expect(product).toBeVisible();
-    await product.click();
-    const modal = this.page.locator('#cartModal');
-    await expect(modal).toHaveClass(/show/);
-    await this.closeCartModal();
-  }
-
-  private async closeCartModal(): Promise<void> {
-    const modal = this.page.locator('#cartModal');
-    // The modal only appears once the add-to-cart request succeeds, so waiting
-    // for it guarantees the item is in the cart before the caller navigates
-    // away (an early navigation aborts the request and leaves the cart empty).
-    await expect(modal).toHaveClass(/show/, { timeout: 10000 });
-    const continueShopping = modal.locator('button.close-modal');
-    if (await continueShopping.isVisible().catch(() => false)) {
-      await continueShopping.click({ force: true });
-      await expect(modal).not.toHaveClass(/show/);
-    }
-    await this.waitAfterAction();
+    await addToCartAndCloseModal(this.page, product);
   }
 
   async search(term: string): Promise<void> {
@@ -54,13 +40,26 @@ export class ProductsPage extends BasePage {
   }
 
   async openFirstProductDetails(): Promise<void> {
+    await this.openProductDetailsFromFirstLink();
+  }
+
+  /**
+   * Ads can swallow the click on a product card (observed in headed Test Case 8:
+   * the URL stayed on the brand page) and a "#google_vignette" redirect can
+   * hijack it as well. Verify where the click landed and replay the navigation
+   * directly against the link's own href whenever it did not reach a product
+   * details page.
+   */
+  private async openProductDetailsFromFirstLink(): Promise<void> {
     const productLink = this.page.locator('.features_items a[href^="/product_details/"]:visible').first();
     await expect(productLink).toBeVisible();
     const detailsUrl = await productLink.getAttribute('href');
     await closeVisibleAd(this.page);
-    await productLink.click({ force: true });
-    if (this.page.url().includes('#google_vignette') && detailsUrl) {
+    await productLink.click({ force: true }).catch(() => undefined);
+    await this.page.waitForURL(/\/product_details\/\d+/, { timeout: 5000 }).catch(() => undefined);
+    if (detailsUrl && !/\/product_details\/\d+/.test(this.page.url())) {
       await gotoWithRetry(this.page, detailsUrl);
+      await closeVisibleAd(this.page);
     }
     await this.waitAfterAction();
   }
@@ -121,14 +120,6 @@ export class ProductsPage extends BasePage {
   }
 
   async openFirstVisibleProductDetails(): Promise<void> {
-    const productLink = this.page.locator('.features_items a[href^="/product_details/"]:visible').first();
-    await expect(productLink).toBeVisible();
-    const detailsUrl = await productLink.getAttribute('href');
-    await closeVisibleAd(this.page);
-    await productLink.click({ force: true });
-    if (this.page.url().includes('#google_vignette') && detailsUrl) {
-      await gotoWithRetry(this.page, detailsUrl);
-    }
-    await this.waitAfterAction();
+    await this.openProductDetailsFromFirstLink();
   }
 }

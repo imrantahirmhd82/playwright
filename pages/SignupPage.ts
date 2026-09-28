@@ -122,9 +122,22 @@ export class SignupPage {
     await expect(loggedIn).toBeVisible({ timeout: 15000 });
   }
 
+  /**
+   * The click can land on an ad/Cloudflare error page instead of the deletion
+   * page (observed: Cloudflare 520 in Test Case 2), so fall back to the delete
+   * URL before giving up.
+   */
   async deleteAccount(): Promise<void> {
+    const deleted = this.page.getByText('Account Deleted!');
     await this.page.getByRole('link', { name: 'Delete Account' }).click();
-    await expect(this.page.getByText('Account Deleted!')).toBeVisible();
+    const confirmed = await expect(deleted)
+      .toBeVisible({ timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!confirmed) {
+      await gotoWithRetry(this.page, '/delete_account');
+    }
+    await expect(deleted).toBeVisible({ timeout: 15000 });
     await this.page.waitForTimeout(400);
   }
 

@@ -9,17 +9,27 @@ import { closeVisibleAd } from './adHandler';
  * retry until the real page is served.
  */
 const interstitialTitlePattern =
-  /one moment|just a moment|attention required|checking your browser|please wait/i;
+  /one moment|just a moment|attention required|checking your browser|please wait|warning: security risk|secure connection failed|server not found|problem loading page|this site can't be reached|hmm, we're having trouble finding that site|did not connect/i;
 
-async function isHeavyLoadPage(page: Page): Promise<boolean> {
+/**
+ * Markers that only appear in the body of browser or Cloudflare error documents.
+ * The title check alone cannot catch them: Firefox serves its network/TLS
+ * failures (observed: PR_END_OF_FILE_ERROR) with the generic "Warning: Security
+ * Risk" title, and Cloudflare 5xx pages keep a normal-looking title such as
+ * "automationexercise.com | 520: Web server is returning an unknown error".
+ */
+const unavailablePageTextPattern =
+  /under heavy load|queue full|secure connection failed|pr_end_of_file_error|error code: 5\d\d|web server is returning an unknown error|unknown connection issue between cloudflare and the origin|bad gateway|service temporarily unavailable/i;
+
+async function isUnavailablePage(page: Page): Promise<boolean> {
   return page
-    .getByText(/under heavy load|queue full/i)
+    .getByText(unavailablePageTextPattern)
     .first()
     .isVisible({ timeout: 1500 })
     .catch(() => false);
 }
 
-/** True when the loaded document looks like the real site rather than an interstitial. */
+/** True when the loaded document is the real site, not an interstitial/error page. */
 async function isRealPage(page: Page): Promise<boolean> {
   if (page.isClosed()) {
     return false;
@@ -28,7 +38,7 @@ async function isRealPage(page: Page): Promise<boolean> {
   if (!title || interstitialTitlePattern.test(title)) {
     return false;
   }
-  return !(await isHeavyLoadPage(page));
+  return !(await isUnavailablePage(page));
 }
 
 /**

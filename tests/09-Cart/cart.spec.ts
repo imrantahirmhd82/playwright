@@ -1,4 +1,5 @@
-import { expect, Page, test } from '@playwright/test';
+import { addToCartAndCloseModal } from '../../utils/cartModal';
+import { expect, test } from '../../utils/testFixtures';
 import { installAdCloser } from '../../utils/adHandler';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ProductsPage } from '../../pages/ProductsPage';
@@ -12,20 +13,6 @@ test.beforeEach(async ({ page }, testInfo) => {
   await showTestExecutionPopup(page, `Executing ${testInfo.title}`);
   installAdCloser(page);
 });
-
-async function continueAfterAddingProduct(page: Page): Promise<void> {
-  const cartModal = page.locator('#cartModal');
-  // The modal only appears after the add-to-cart request succeeds; waiting for
-  // it guarantees the item reached the cart before any navigation, which would
-  // otherwise abort the in-flight request and silently empty the cart.
-  await expect(cartModal).toHaveClass(/show/, { timeout: 10000 });
-  const continueShopping = cartModal.locator('button.close-modal');
-  if (await continueShopping.isVisible().catch(() => false)) {
-    await continueShopping.click({ force: true });
-    await expect(cartModal).not.toHaveClass(/show/);
-  }
-  await page.waitForTimeout(400);
-}
 
 test('Test Case 11: Verify Subscription in Cart Page', async ({ page }) => {
   const cartPage = new CartPage(page);
@@ -76,8 +63,7 @@ test('Test Case 13: Verify Product Quantity in Cart', async ({ page }) => {
     const quantityField = page.locator('#quantity');
     await expect(quantityField).toBeVisible();
     await quantityField.fill(getTestData('quantity'));
-    await page.locator('button:has-text("Add to cart")').click();
-    await continueAfterAddingProduct(page);
+    await addToCartAndCloseModal(page, page.locator('button:has-text("Add to cart")'));
   });
 
   await test.step('3. Verify the quantity in the Cart', async () => {

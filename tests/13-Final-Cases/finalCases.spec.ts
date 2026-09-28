@@ -1,4 +1,5 @@
-import { expect, test, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
+import { expect, test } from '../../utils/testFixtures';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
 import { ensureStaticUser } from '../../utils/staticUser';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';

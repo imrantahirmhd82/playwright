@@ -1,4 +1,5 @@
 import { expect, Page } from '@playwright/test';
+import { addToCartAndCloseModal } from '../utils/cartModal';
 import { BasePage } from './BasePage';
 import { getTestData } from '../utils/excelData';
 
@@ -22,14 +23,6 @@ export class ReviewPage extends BasePage {
   async addRecommendedProduct(): Promise<void> {
     const recommendedProduct = this.page.locator('#recommended-item-carousel .add-to-cart:visible').first();
     await expect(recommendedProduct).toBeVisible();
-    await recommendedProduct.click();
-    const cartModal = this.page.locator('#cartModal');
-    await expect(cartModal).toHaveClass(/show/);
-    const continueShopping = cartModal.locator('button.close-modal');
-    if (await continueShopping.isVisible().catch(() => false)) {
-      await continueShopping.click({ force: true });
-      await expect(cartModal).not.toHaveClass(/show/);
-    }
-    await this.waitAfterAction();
+    await addToCartAndCloseModal(this.page, recommendedProduct);
   }
 }

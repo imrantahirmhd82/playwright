@@ -1,5 +1,6 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, test } from '../../utils/testFixtures';
 import { closeVisibleAd, installAdCloser } from '../../utils/adHandler';
+import { addToCartAndCloseModal } from '../../utils/cartModal';
 import { showTestExecutionPopup } from '../../utils/testExecutionPopup';
 import { ReviewPage } from '../../pages/ReviewPage';
 import { CartPage } from '../../pages/CartPage';
@@ -18,25 +19,16 @@ test.beforeEach(async ({ page }, testInfo) => {
   installAdCloser(page);
 });
 
-async function closeCartModal(page: Page): Promise<void> {
-  const cartModal = page.locator('#cartModal');
-  const continueShopping = cartModal.locator('button.close-modal');
-  if (await continueShopping.isVisible().catch(() => false)) {
-    await continueShopping.click({ force: true });
-    await expect(cartModal).not.toHaveClass(/show/);
-  }
-  await page.waitForTimeout(400);
-}
-
 test('Test Case 21: Add Review on Product', async ({ page }) => {
   const reviewPage = new ReviewPage(page);
   await test.step('1. Add a product and open it from the Cart', async () => {
     await gotoWithRetry(page, '/products');
     await closeVisibleAd(page);
     await expect(page.getByRole('heading', { name: 'ALL PRODUCTS' })).toBeVisible();
-    await page.locator(`.add-to-cart[data-product-id="${getTestData('primary_product_id')}"]`).first().click();
-    await expect(page.locator('#cartModal')).toHaveClass(/show/);
-    await closeCartModal(page);
+    await addToCartAndCloseModal(
+      page,
+      page.locator(`.add-to-cart[data-product-id="${getTestData('primary_product_id')}"]`).first()
+    );
     await gotoWithRetry(page, '/view_cart');
     await closeVisibleAd(page);
     await page.waitForTimeout(400);
