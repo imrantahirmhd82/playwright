@@ -4,7 +4,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
 
   testDir: './tests',
-  workers: 1,
+  workers: 2,
   // Long end-to-end flows against a live site can be slow; keep a generous
   // global budget and retry only in CI to absorb network/ad flakiness.
   timeout: 120000,
