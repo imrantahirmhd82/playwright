@@ -30,7 +30,7 @@ export default defineConfig({
         // headless/CI runs; headed runs are resized to the screen work area by the
         // `maximizedWindow` fixture, because Firefox has no maximize flag
         // (`--start-maximized` is a Chromium-only launch option).
-        viewport: { width: 1280, height: 720 }
+        viewport: { width: 1280, height: 1000 }
       }
     }
   ],
